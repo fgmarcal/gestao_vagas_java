@@ -32,6 +32,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/candidate")
+@Tag(name = "Candidato", description = "Informações do candidato")
 public class CandidateController {
 
     @Autowired
@@ -44,6 +45,14 @@ public class CandidateController {
     private ListAllJobsByFilterUseCase listAllJobsByFilterUseCase;
 
     @PostMapping("/")
+    @Operation(summary = "Cadastro do candidato", 
+    description = "Função responsável por cadastrar um candidato")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", content = {
+            @Content(schema = @Schema(implementation = CandidateEntity.class))
+        }),
+        @ApiResponse(responseCode = "400", description = "Usuário já existe")
+    })
     public ResponseEntity<Object> create(@Valid @RequestBody CandidateEntity candidateEntity){
         try {
             var result =  this.createCandidateUseCase.execute(candidateEntity);
@@ -56,17 +65,16 @@ public class CandidateController {
 
     @GetMapping("/")
     @PreAuthorize("hasRole('CANDIDATE')")
-    @Tag(name = "Candidato", description = "Informações do candidato")
     @Operation(summary = "Perfil do candidato", 
     description = "Função responsável por buscar as informações do candidato")
-    @SecurityRequirement(name = "jwt_auth")
-
+    
     @ApiResponses({
         @ApiResponse(responseCode = "200", content = {
             @Content(schema = @Schema(implementation = ProfileCandidateResponseDTO.class))
         }),
         @ApiResponse(responseCode = "400", description = "User not found")
     })
+    @SecurityRequirement(name = "jwt_auth")
     public ResponseEntity<Object> get(HttpServletRequest request){
         var idCandidate = request.getAttribute("candidate_id");
 
@@ -80,17 +88,16 @@ public class CandidateController {
 
     @GetMapping("/job")
     @PreAuthorize("hasRole('CANDIDATE')")
-    @Tag(name = "Candidato", description = "Informações do candidato")
     @Operation(summary = "Listagem de vagas disponíveis para o candidato", 
     description = "Função responsável por listas vagas disponíveis, baseada no filtro")
-    @SecurityRequirement(name = "jwt_auth")
     @ApiResponses({
         @ApiResponse(responseCode = "200", content = {
             @Content(
                 array = @ArraySchema(schema = @Schema(implementation = JobEntity.class))
-            )
+                )
+            })
         })
-    })
+    @SecurityRequirement(name = "jwt_auth")
     public List<JobEntity> findJobByFilter(@RequestParam String filter){
         return this.listAllJobsByFilterUseCase.execute(filter);
     }
