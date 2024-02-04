@@ -43,6 +43,7 @@ public class AuthCompanyUseCase {
         if(!passwordMatches){
             throw new AuthenticationException();
         }
+        
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
 
         var expiresIn = Instant.now().plus(Duration.ofHours(2));
